@@ -87,7 +87,6 @@ struct ContentView: View {
                     
                     Button {
                         showExchangeInfo.toggle()
-                        print("showExchangeInfo value: \(showExchangeInfo)")
                     } label: {
                         Image(systemName: "info.circle.fill")
                             .font(.largeTitle)
@@ -96,6 +95,9 @@ struct ContentView: View {
                     .padding(.trailing)
                 }
             }
+            .sheet(isPresented: $showExchangeInfo, content: {
+                ExchangeInfo()
+            })
 //            .border(.blue)
         }
     }
