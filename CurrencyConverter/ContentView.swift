@@ -6,22 +6,26 @@
 //
 
 import SwiftUI
+import TipKit
 
 struct ContentView: View {
     @State var showExchangeInfo = false
     @State var showSelectCurrency = false
+    
     @State var leftAmount = ""
     @State var rightAmount = ""
+    @FocusState var leftTextFieldFocused
+    @FocusState var rightTextFieldFocused
     
     @State var leftCurrency = Currency.silverPenny
     @State var rightCurrency  = Currency.goldPenny
     
     var body: some View {
         ZStack {
+            // background image
             Image(.background)
                 .resizable()
                 .ignoresSafeArea()
-            // background image
             
             VStack {
                 Image(.prancingpony)
@@ -51,9 +55,12 @@ struct ContentView: View {
                         .onTapGesture {
                             showSelectCurrency = true
                         }
+                        .popoverTip(CurrencyTip(), arrowEdge: .bottom)
                         
                         TextField("Amount", text: $leftAmount)
                             .textFieldStyle(.roundedBorder)
+                            .focused($leftTextFieldFocused)
+                            .keyboardType(.decimalPad)
                             
                     }
                 
@@ -84,6 +91,8 @@ struct ContentView: View {
                         TextField("Amount", text: $rightAmount)
                             .textFieldStyle(.roundedBorder)
                             .multilineTextAlignment(.trailing)
+                            .focused($rightTextFieldFocused)
+                            .keyboardType(.decimalPad)
                     }
                        
                 }
@@ -105,6 +114,23 @@ struct ContentView: View {
                     }
                     .padding(.trailing)
                 }
+            }
+            .task {
+                try? Tips.configure()
+            }
+            .onChange(of: leftAmount) {
+                if rightTextFieldFocused { return }
+                rightAmount = leftCurrency.convert(leftAmount, to: rightCurrency)
+            }
+            .onChange(of: rightAmount) {
+                if leftTextFieldFocused { return }
+                leftAmount = rightCurrency.convert(rightAmount, to: leftCurrency)
+            }
+            .onChange(of: leftCurrency) {
+                leftAmount = rightCurrency.convert(rightAmount, to: leftCurrency)
+            }
+            .onChange(of: rightCurrency) {
+                rightAmount = leftCurrency.convert(leftAmount, to: rightCurrency)
             }
             .sheet(isPresented: $showExchangeInfo, content: {
                 ExchangeInfo()
